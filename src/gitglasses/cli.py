@@ -1,3 +1,4 @@
+import logging
 import sys
 from argparse import ArgumentParser
 from enum import Enum
@@ -7,6 +8,8 @@ from typing import Sequence
 import pygit2
 
 from gitglasses.gitglasses import show_branches
+
+_logger = logging.getLogger(__name__)
 
 
 class Branches(Enum):
@@ -31,20 +34,29 @@ def create_parser() -> ArgumentParser:
     return parser
 
 
-def get_commit_oid(
-    branchname_or_hash: str | None, repo: pygit2.Repository
-) -> pygit2.Oid:
-    all_branches = repo.branches
-    if branchname_or_hash is None:
+def get_base_branch(from_: pygit2.Oid): ...
+
+
+def get_from_branch(from_branch: str | None, repo: pygit2.Repository) -> pygit2.Oid:
+    if from_branch is None:
         return repo.head.peel(pygit2.Commit).id
+    if from_branch in repo.branches:
+        cmt = repo.branches[from_branch].peel(pygit2.Commit)
+        return cmt.id
+    else:
+        return repo.revparse_single(from_branch).id
 
-    if branchname_or_hash in all_branches:
-        branch = all_branches[branchname_or_hash]
-        cmt = branch.peel(pygit2.Commit)
-        return branch.peel(pygit2.Commit).id
 
-    cmt = repo.revparse_single(branchname_or_hash)
-    return cmt.id
+def get_to_branch(
+    to_branch: str, repo: pygit2.Repository, from_branch: pygit2.Oid
+) -> pygit2.Oid:
+    if to_branch in repo.branches:
+        _logger.debug(
+            "to_branch is a branch name. Finding merge base using the  from_branch"
+        )
+        to_branch_head = repo.branches[to_branch].peel(pygit2.Commit).id
+        return repo.merge_base(from_branch, to_branch_head)
+    return repo.revparse_single(to_branch).id
 
 
 def run(args: Sequence[str] | None = None):
@@ -55,10 +67,10 @@ def run(args: Sequence[str] | None = None):
     repo = pygit2.Repository(Path.cwd())
 
     _from: str | None = arguments.source_commit_or_branch
-    _from_commit = get_commit_oid(_from, repo=repo)
+    _from_commit = get_from_branch(_from, repo=repo)
 
     _to = arguments.target_commit_or_branch
-    _to_commit = get_commit_oid(_to, repo=repo)
+    _to_commit = get_to_branch(_to, repo=repo, from_branch=_from_commit)
 
     if _from_commit == _to_commit:
         print("From and to are equal branches. Nothing to investigate.")
