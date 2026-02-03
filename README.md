@@ -11,20 +11,26 @@ uv sync
 ## Usage
 
 ```bash
-gitglasses <start_ref> <end_ref>
+gitglasses [--from <ref>] [--to <ref>]
 ```
+
+- `--from`: Starting commit or branch (defaults to current HEAD)
+- `--to`: Target branch or commit (defaults to "main")
 
 ### Examples
 
 ```bash
-# Show branches between HEAD and main
-gitglasses HEAD main
+# Show branches from current HEAD to main (using defaults)
+gitglasses
+
+# Explicitly specify from HEAD to main
+gitglasses --from HEAD --to main
 
 # Show branches in last 5 commits
-gitglasses HEAD~5 HEAD
+gitglasses --from HEAD --to HEAD~5
 
-# Show branches between feature-a and main
-gitglasses feature-a main
+# Show branches from feature-a to main
+gitglasses --from feature-a --to main
 ```
 
 ## Output
