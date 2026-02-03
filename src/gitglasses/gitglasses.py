@@ -27,7 +27,7 @@ def show_branches(current_hash: Oid, end_hash: Oid, repo: Repository) -> None:
     tree = get_tree(current_hash, end_hash, repo)
     parsed = parse_tree(tree)
 
-    print(parsed)
+    print("\n".join(parsed))
 
 
 def parse_tree(tree: dict[Oid, Cmt]) -> tuple[str, ...]:
