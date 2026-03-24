@@ -10,15 +10,16 @@ from gitglasses import gitglasses
 
 @pytest.fixture
 def git_simple_branches(tmp_path) -> Path:
-    # * main
-    # |
-    # * changes in my_file.txt
-    # |
-    # * more changes to my_file.txt  [branch A]
-    # |\
-    # | * a commit to branch d [branch D]
-    # |
-    # * more changes [branch B]
+    # * 3a99ca8 (branch-b) more changes
+    # | * 851721f (branch-c) add branch c
+    # | | * 5b34141 (branch-d) a commit to branch d
+    # | |/
+    # |/|
+    # * | 961cab4 (branch-a) more changes to my_file.txt
+    # * | 82649a6 changes in my_file.txt
+    # |/
+    # * 2798c44 (HEAD -> main) change to my_file.txt
+    # * a22e1e8 commit on main
 
     script = """
 
